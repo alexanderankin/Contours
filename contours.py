@@ -2,6 +2,8 @@
 # output is to a squareless.txt file and the directory "out"
 # Working well with thumbnails with 400px as their longest side - untested with other dimensions
 
+# for i in $(ls -1 | grep tif); do python /Users/artsyinc/Documents/resistance/experiments/artwork_image_cropping/contours.py $i; done
+
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -9,6 +11,8 @@ import sys
 import math
 import pdb
 import random as ra
+import json
+import csv
 
 ### convenience plotting functions
 def ss(thing):
@@ -29,7 +33,7 @@ else:
   print "No input image given! \n"
 
 img = cv2.imread(filename,)
-img_copy = img.copy()
+img_copy = img.copy()[:,:,::-1] # color channel plotting mess http://stackoverflow.com/a/15074748/2256243
 height = img.shape[0]
 width = img.shape[1]
 
@@ -116,6 +120,9 @@ if len(sorted_squares) and rank(sorted_squares[0]) < 3:
   cv2.drawContours(img, squares, -1, (0,255,255), 1) # draw all found squares
   cv2.drawContours(img, [sorted_squares[0]], -1, (0,255,60), 3)
   cv2.imwrite('out/' + filename, img)
+  with open('square_found.csv', 'a') as csvfile:
+    writer = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+    writer.writerow([filename, json.dumps(sorted_squares[0].tolist()), height, width])
 else:
   with open("squareless.txt", "a") as f:
     f.write(filename + "\n")
@@ -134,6 +141,9 @@ blured = cv2.medianBlur(dilated, 7)
 plt.subplot2grid((2,5), (0,3)),plt.imshow(blured, cmap = 'gray')
 plt.title('Median Filter'), plt.xticks([]), plt.yticks([])
 
+# Shrinking followed by expanding can be used for removing isolated noise pixels
+# another way to think of it is "enlarging the background"
+# http://www.cs.umb.edu/~marc/cs675/cvs09-12.pdf
 small = cv2.pyrDown(blured, dstsize = (width / 2, height / 2))
 oversized = cv2.pyrUp(small, dstsize = (width, height))
 plt.subplot2grid((2,5), (0,4)),plt.imshow(oversized, cmap = 'gray')
