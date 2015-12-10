@@ -134,4 +134,4 @@ cv2.drawContours(img_with_top_square, [sorted_squares[0]], -1, (0,255,60), 3)
 plt.subplot2grid((2,5), (1,4)),plt.imshow(img_with_top_square)
 plt.title('Top Ranked Shape'), plt.xticks([]), plt.yticks([])
 
-# plt.show()
+plt.show()
